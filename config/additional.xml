@@ -1,0 +1,85 @@
+<additional>       
+        <inductionLoop id="601:1Din" lane="157623962#6_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:3Din" lane="157623962#6_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:9Din" lane="178714428_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:5Din" lane="178714428_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:7Din" lane="178714428_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:11Din" lane="439645279#5_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:13Din" lane="439645279#5_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:15Din" lane="161223838#5_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="601:17Din" lane="161223838#5_1" pos="2" freq="3600" file="out.xml"/>
+
+        <inductionLoop id="502:19Din" lane="135454822#4-AddedOffRampEdge_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:21Din" lane="135454822#4-AddedOffRampEdge_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:23Din" lane="135454822#4-AddedOffRampEdge_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:17Din" lane="39349400#7_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:15Din" lane="39349400#7_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:13Din" lane="39349400#7_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:11Din" lane="39349400#7_3" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:1Din" lane="161082233#11_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:3Din" lane="161082233#11_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:5Din" lane="161082233#11_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:7Din" lane="555903535#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="502:9Din" lane="555903535#0_1" pos="2" freq="3600" file="out.xml"/>
+
+        <inductionLoop id="302:9Din" lane="589529307#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:11Din" lane="589529307#0_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:13Din" lane="589529307#0_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:15Din" lane="589529307#0_3" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:17Din" lane="136100513#7_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:19Din" lane="136100513#7_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:21Din" lane="136100513#7_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:22Din" lane="136100513#7_3" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:24Din" lane="136100513#7_4" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:25Din" lane="91807518#3_0" pos="370" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:27Din" lane="91807518#3_1" pos="370" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:29Din" lane="91807518#3_2" pos="370" freq="3600" file="out.xml"/>	
+        <inductionLoop id="302:1Din" lane="25625190#5_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:3Din" lane="25625190#5_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:5Din" lane="25625190#5_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="302:7Din" lane="25625190#5_3" pos="2" freq="3600" file="out.xml"/>
+
+        <inductionLoop id="402:8Din" lane="30061694#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:10Din" lane="30061694#0_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:12Din" lane="30061694#0_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:14Din" lane="91803470#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:16Din" lane="91803470#0_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:18Din" lane="91803470#0_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:1Din" lane="135438820#1_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:3Din" lane="135438820#1_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="402:5Din" lane="135438820#1_2" pos="2" freq="3600" file="out.xml"/>
+
+        <inductionLoop id="404:13Din" lane="135435917#1_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:15Din" lane="135435917#1_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:17Din" lane="135435917#1_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:20Din" lane="660944417#0-AddedOffRampEdge_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:21Din" lane="660944417#0-AddedOffRampEdge_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:23Din" lane="660944417#0-AddedOffRampEdge_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:1Din" lane="161082236#7_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:3Din" lane="161082236#7_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:5Din" lane="161082236#7_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:8Din" lane="161226594#2_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:9Din" lane="161226594#2_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="404:11Din" lane="161226594#2_2" pos="2" freq="3600" file="out.xml"/>
+
+        <inductionLoop id="306:9Din" lane="25625330#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:11Din" lane="25625330#0_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:13Din" lane="25625330#0_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:15Din" lane="81371106#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:17Din" lane="81371106#0_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:19Din" lane="81371106#0_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:21Din" lane="81371106#0_3" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:1Din" lane="230878792#4_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:3Din" lane="230878792#4_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:5Din" lane="230878792#4_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:7Din" lane="230878792#4_3" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:27Din" lane="161082231#0_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:29Din" lane="161082231#0_1" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:31Din" lane="161082231#0_2" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:23Din" lane="328796530#2_0" pos="2" freq="3600" file="out.xml"/>
+        <inductionLoop id="306:25Din" lane="328796530#2_1" pos="2" freq="3600" file="out.xml"/>
+        
+        <inductionLoop id="velocity0" lane="230878791#2_0" pos="500" freq="3600" file="out.xml"/>
+        <inductionLoop id="velocity1" lane="230878791#2_1" pos="500" freq="3600" file="out.xml"/>
+        <inductionLoop id="velocity2" lane="230878791#2_2" pos="500" freq="3600" file="out.xml"/>     
+</additional>
