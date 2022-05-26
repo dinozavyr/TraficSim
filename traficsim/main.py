@@ -9,7 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from datetime import datetime
 from pytz import timezone
-
+from traficsim.util.murmur3_partitioner import Murmur3Partitioner
 import pandas as pd
 from lxml import etree
 
@@ -131,37 +131,42 @@ def main():
     minGap = [1, 1.5, 2, 2.5, 3]
     tau = [1, 1.25]
 
+    partitioner = Murmur3Partitioner(num_tasks)
+
     result_dict = defaultdict(list)
     for algo, m, t in itertools.product(routingAlgorithm, minGap, tau):
-        start_dt = str(datetime.now(timezone('Europe/Sofia')))
+
         sim_uuid = "algo={}_m={}_t={}".format(algo, m, t)
-        run_flow_router(sim_uuid, 50)
+        if partitioner.getPartition(sim_uuid) == task_index:
+            start_dt = str(datetime.now(timezone('Europe/Sofia')))
+            run_flow_router(sim_uuid, 50)
 
-        attrs = {
-            'id': 'vdist1',
-            'vClass': 'passenger',
-            'color': '1,0,0',
-            'carFollowModel': 'KraussOrig1',
-            'minGap': f'{m}',
-            'tau': f'{t}'
-        }
-        create_flow_file(sim_uuid, attrs)
+            attrs = {
+                'id': 'vdist1',
+                'vClass': 'passenger',
+                'color': '1,0,0',
+                'carFollowModel': 'KraussOrig1',
+                'minGap': f'{m}',
+                'tau': f'{t}'
+            }
+            create_flow_file(sim_uuid, attrs)
 
-        call_dua_router(sim_uuid, algo)
-        run_kraus_orig_1(sim_uuid, m, t)
-        end_dt = str(datetime.now(timezone('Europe/Sofia')))
-        result_dict['algo'].append(algo)
-        result_dict['minGap'].append(m)
-        result_dict['tau'].append(t)
-        result_dict['start'].append(start_dt)
-        result_dict['end'].append(end_dt)
-        tree = etree.parse(Path.cwd() / Path(f'data/sim_{sim_uuid}/stat.xml'))
-        for el in list(tree.getroot()):
-            for attr_name, attr_val in dict(el.attrib).items():
-                result_dict[f"{el.tag}_{attr_name}"].append(attr_val)
-
+            call_dua_router(sim_uuid, algo)
+            run_kraus_orig_1(sim_uuid, m, t)
+            end_dt = str(datetime.now(timezone('Europe/Sofia')))
+            result_dict['algo'].append(algo)
+            result_dict['minGap'].append(m)
+            result_dict['tau'].append(t)
+            result_dict['start'].append(start_dt)
+            result_dict['end'].append(end_dt)
+            tree = etree.parse(Path.cwd() / Path(f'data/sim_{sim_uuid}/stat.xml'))
+            for el in list(tree.getroot()):
+                for attr_name, attr_val in dict(el.attrib).items():
+                    result_dict[f"{el.tag}_{attr_name}"].append(attr_val)
+        else:
+            logger.info(f"Task {task_index} skiping {sim_uuid}")
     result_df = pd.DataFrame(result_dict)
-    result_df.to_csv(Path.cwd() / Path('data/result.csv'))
+    result_df.to_csv(Path.cwd() / Path(f'data/result_{task_index}_of_{num_tasks}.csv'))
 
 
 if __name__ == '__main__':
