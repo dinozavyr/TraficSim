@@ -80,15 +80,6 @@ def call_dua_router(sim_uuid, algo):
 
 
 def run_kraus_orig_1(sim_uuid, minGap, tau):
-    attrs = {
-        'id': 'vdist1',
-        'vClass': 'passenger',
-        'color': '1,0,0',
-        'carFollowModel': 'KraussOrig1',
-        'minGap': f'{minGap}',
-        'tau': f'{tau}'
-    }
-    create_flow_file(sim_uuid, attrs)
 
     cmd = "sumo --save-configuration {config_file} --net-file {net_file} --route-files {routefile} " \
           "--additional-files {aditionalfile} --time-to-teleport 3600 --end 86400 --ignore-route-errors true " \
@@ -145,6 +136,17 @@ def main():
         start_dt = str(datetime.now(timezone('Europe/Sofia')))
         sim_uuid = "algo={}_m={}_t={}".format(algo, m, t)
         run_flow_router(sim_uuid, 50)
+
+        attrs = {
+            'id': 'vdist1',
+            'vClass': 'passenger',
+            'color': '1,0,0',
+            'carFollowModel': 'KraussOrig1',
+            'minGap': f'{m}',
+            'tau': f'{t}'
+        }
+        create_flow_file(sim_uuid, attrs)
+
         call_dua_router(sim_uuid, algo)
         run_kraus_orig_1(sim_uuid, m, t)
         end_dt = str(datetime.now(timezone('Europe/Sofia')))
