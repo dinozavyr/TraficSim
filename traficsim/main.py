@@ -84,9 +84,9 @@ def run_kraus_orig_1(sim_uuid, minGap, tau):
     cmd = "sumo --save-configuration {config_file} --net-file {net_file} --route-files {routefile} " \
           "--additional-files {aditionalfile} --time-to-teleport 3600 --end 86400 --ignore-route-errors true " \
           "--device.rerouting.adaptation-steps 18 --device.rerouting.adaptation-interval 10 " \
-          "--duration-log.statistics true --log {logfile} " \
+          "--duration-log.statistics true --log {logfile} --step-length 0.1 " \
           "--statistic-output {statfile} --summary-output {summaryfile}".format(
-        config_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/sumoCFG.xml'),
+        config_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/sumo.sumocfg'),
         net_file=Path.cwd() / Path('config/updated.net.xml'),
         routefile=Path.cwd() / Path(f'data/sim_{sim_uuid}/DUAout.xml'),
         aditionalfile=Path.cwd() / Path('config/additional.xml'),
@@ -96,7 +96,7 @@ def run_kraus_orig_1(sim_uuid, minGap, tau):
     logger.info("Running sumo config with command: {}".format(cmd))
     subprocess.run(cmd, shell=True)
 
-    cmd = "sumo -c {config_file}".format(config_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/sumoCFG.xml'))
+    cmd = "sumo -c {config_file}".format(config_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/sumo.sumocfg'))
     subprocess.run(cmd, shell=True)
     return
 
@@ -165,6 +165,7 @@ def main():
                     result_dict[f"{el.tag}_{attr_name}"].append(attr_val)
         else:
             logger.info(f"Task {task_index} skiping {sim_uuid}")
+        break
     result_df = pd.DataFrame(result_dict)
     result_df.to_csv(Path.cwd() / Path(f'data/result_{task_index}_of_{num_tasks}.csv'))
 
