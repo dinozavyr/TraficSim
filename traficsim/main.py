@@ -2,12 +2,21 @@ import errno
 import getopt
 import itertools
 import logging
+import swiftclient
+import fsspec
+from fsspec.implementations.local import LocalFileSystem
 import os
+from keystoneauth1 import session
+from keystoneauth1.identity import v3
 import subprocess
 import sys
+import uuid
+import json
 from collections import defaultdict
 from pathlib import Path
 from datetime import datetime
+
+import uuid as uuid
 from pytz import timezone
 from traficsim.util.murmur3_partitioner import Murmur3Partitioner
 import pandas as pd
@@ -18,10 +27,10 @@ from traficsim import setup_logging
 logger = logging.getLogger(__name__)
 
 
-def run_flow_router(sim_uuid, interval):
-    if not os.path.exists(Path.cwd() / Path(f'data/sim_{sim_uuid}')):
+def run_flow_router(sim_uuid, sim_params, interval):
+    if not os.path.exists(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}')):
         try:
-            os.makedirs(Path.cwd() / Path(f'data/sim_{sim_uuid}'))
+            os.makedirs(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}'))
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise
@@ -31,8 +40,8 @@ def run_flow_router(sim_uuid, interval):
         net_path=Path.cwd() / Path('config/updated.net.xml'),
         detectors_path=Path.cwd() / Path('config/detectors.xml'),
         conf_path=Path.cwd() / Path('config/wcfg.csv'),
-        output_path=Path.cwd() / Path(f'data/sim_{sim_uuid}/route.xml'),
-        flows_path=Path.cwd() / Path(f'data/sim_{sim_uuid}/flow.xml'),
+        output_path=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/route.xml'),
+        flows_path=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/flow.xml'),
         interval=interval
     )
     logger.info("Starting flowrouter with command: {}".format(cmd))
@@ -40,8 +49,8 @@ def run_flow_router(sim_uuid, interval):
     logger.info("flowrouter end")
 
 
-def create_flow_file(sim_uuid, attrs):
-    tree = etree.parse(Path.cwd() / Path(f'data/sim_{sim_uuid}/route.xml'))
+def create_flow_file(sim_uuid, sim_params, attrs):
+    tree = etree.parse(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/route.xml'))
 
     additional_el = tree.getroot()
 
@@ -49,21 +58,24 @@ def create_flow_file(sim_uuid, attrs):
     for key in attrs.keys():
         vtype.attrib[key] = attrs[key]
 
-    with open(Path.cwd() / Path(f'data/sim_{sim_uuid}/route.xml'), 'wb') as f:
+    with open(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/route.xml'), 'wb') as f:
         tree.write(f, encoding='utf-8', pretty_print=True)
     logger.info(
-        "{attrs} \n saved in {file}".format(attrs=attrs, file=str(Path.cwd() / Path(f'data/sim_{sim_uuid}/route.xml'))))
+        "{attrs} \n saved in {file}".format(attrs=attrs,
+                                            file=str(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/route.xml'))))
 
 
-def call_dua_router(sim_uuid, algo):
-    cmd = 'duarouter --output-file {output_file} --save-configuration {output_config} --net-file {netfile} --route-files {routefile},{flowfile} --vtype-output {vtypefile} --routing-algorithm {algo} --weight-period 50 -v'.format(
-        output_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/DUAout.xml'),
-        output_config=Path.cwd() / Path(f'data/sim_{sim_uuid}/duaCFG.xml'),
+def call_dua_router(sim_uuid, sim_params, algo):
+    cmd = 'duarouter --output-file {output_file} --save-configuration {output_config} ' \
+          '--net-file {netfile} --route-files {routefile},{flowfile} --vtype-output {vtypefile} ' \
+          '--routing-algorithm {algo} --weight-period 50 -v'.format(
+        output_file=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/DUAout.xml'),
+        output_config=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/duaCFG.xml'),
         conf_path=Path.cwd() / Path('simulation/Data/Config/wcfg.csv'),
         netfile=Path.cwd() / Path('config/updated.net.xml'),
-        routefile=Path.cwd() / Path(f'data/sim_{sim_uuid}/route.xml'),
-        flowfile=Path.cwd() / Path(f'data/sim_{sim_uuid}/flow.xml'),
-        vtypefile=Path.cwd() / Path(f'data/sim_{sim_uuid}/vtype.xml'),
+        routefile=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/route.xml'),
+        flowfile=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/flow.xml'),
+        vtypefile=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/vtype.xml'),
         algo=algo
     )
     logger.info("Running duarouter config with command: {}".format(cmd))
@@ -71,7 +83,7 @@ def call_dua_router(sim_uuid, algo):
     logger.info("duarouter config end")
 
     cmd = 'duarouter -c {conf_file} -v'.format(
-        conf_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/duaCFG.xml'),
+        conf_file=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/duaCFG.xml'),
 
     )
     logger.info("Running duarouter with command: {}".format(cmd))
@@ -79,26 +91,54 @@ def call_dua_router(sim_uuid, algo):
     logger.info("duarouter end")
 
 
-def run_kraus_orig_1(sim_uuid, minGap, tau):
-
+def run_sumo(sim_uuid, sim_params):
     cmd = "sumo --save-configuration {config_file} --net-file {net_file} --route-files {routefile} " \
           "--additional-files {aditionalfile} --time-to-teleport 3600 --end 86400 --ignore-route-errors true " \
           "--device.rerouting.adaptation-steps 18 --device.rerouting.adaptation-interval 10 " \
-          "--duration-log.statistics true --log {logfile} --step-length 0.1 " \
-          "--statistic-output {statfile} --summary-output {summaryfile}".format(
-        config_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/sumo.sumocfg'),
+          "--duration-log.statistics true --log {logfile} --step-length 0.1 --threads 4 " \
+          "--statistic-output {statfile}".format(
+        config_file=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/sumo.sumocfg'),
         net_file=Path.cwd() / Path('config/updated.net.xml'),
-        routefile=Path.cwd() / Path(f'data/sim_{sim_uuid}/DUAout.xml'),
+        routefile=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/DUAout.xml'),
         aditionalfile=Path.cwd() / Path('config/additional.xml'),
-        logfile=Path.cwd() / Path(f'data/sim_{sim_uuid}/log.xml'),
-        statfile=Path.cwd() / Path(f'data/sim_{sim_uuid}/stat.xml'),
-        summaryfile=Path.cwd() / Path(f'data/sim_{sim_uuid}/summary.xml'))
+        logfile=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/log.xml'),
+        statfile=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/stat.xml'))
     logger.info("Running sumo config with command: {}".format(cmd))
     subprocess.run(cmd, shell=True)
 
-    cmd = "sumo -c {config_file}".format(config_file=Path.cwd() / Path(f'data/sim_{sim_uuid}/sumo.sumocfg'))
+    cmd = "sumo -c {config_file}".format(
+        config_file=Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/sumo.sumocfg'))
     subprocess.run(cmd, shell=True)
     return
+
+
+def get_swift_conn():
+    auth_url = os.getenv('OS_AUTH_URL')
+    app_cred_id = os.environ.get('OS_APPLICATION_CREDENTIAL_ID')
+    app_cred_secret = os.environ.get('OS_APPLICATION_CREDENTIAL_SECRET')
+
+    auth = v3.ApplicationCredential(auth_url=auth_url,
+                                    application_credential_id=app_cred_id,
+                                    application_credential_secret=app_cred_secret)
+    keystone_session = session.Session(auth=auth)
+    swift_conn = swiftclient.Connection(session=keystone_session)
+    return swift_conn
+
+
+def upload_results(sim_uuid, sim_params):
+    swift_conn = get_swift_conn()
+    local_fs = LocalFileSystem()
+
+    for root, subdirs, files in local_fs.walk(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}')):
+        for filename in files:
+            file_path = os.path.join(root, filename)
+            print('Uploading file %s (full path: %s)' % (filename, file_path))
+            with open(file_path, 'rb') as local_file:
+                swift_conn.put_object(
+                    'TraficSim',
+                    f'{sim_uuid}/{sim_params}/{filename}',
+                    contents=local_file,
+                    content_type='text/plain')
 
 
 # Debug area
@@ -108,12 +148,13 @@ def print_help():
 
 def main():
     logger.info('traficsim goes brrrrrr')
-
-    task_index = 0  # Index of the task used for partitioning of the input files
-    num_tasks = 1  # Total number of task
+    sim_uuid = uuid.uuid4()
+    algo = ""
+    minGap = ""
+    tau = ""
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hu:i:n:", ['help', 'task-index=', 'num-tasks='])
+        opts, args = getopt.getopt(sys.argv[1:], "hu:a:m:t:", ['help', 'uuid=', 'algo=', 'minGap=', 'tau='])
     except getopt.GetoptError as error:
         logger.error(error)
         print_help()
@@ -122,52 +163,57 @@ def main():
         if opt in ('-h', "--help"):
             print_help()
             sys.exit()
-        elif opt in ('-i', '--task-index'):
-            task_index = int(arg)
-        elif opt in ('-n', '--num-tasks'):
-            num_tasks = int(arg)
+        elif opt in ('-u', '--uuid'):
+            sim_uuid = arg
+        elif opt in ('-a', '--algo'):
+            algo = str(arg)
+        elif opt in ('-m', '--minGap'):
+            minGap = arg
+        elif opt in ('-t', '--tau'):
+            tau = arg
 
-    routingAlgorithm = ['dijkstra', 'astar', 'CH']
-    minGap = [1, 1.5, 2, 2.5, 3]
-    tau = [1, 1.25]
+    print(f'--uuid={uuid}')
+    print(f'--algo={algo}')
+    print(f'--minGap={minGap}')
+    print(f'--tau={tau}')
+    print(f'cwd={Path.cwd()}')
+    # routingAlgorithm = ['dijkstra', 'astar', 'CH']
+    # minGap = [1, 1.5, 2, 2.5, 3]
+    # tau = [1, 1.25]
 
-    partitioner = Murmur3Partitioner(num_tasks)
+    # result_dict = defaultdict(list)
+    # for algo, m, t in itertools.product(routingAlgorithm, minGap, tau):
 
-    result_dict = defaultdict(list)
-    for algo, m, t in itertools.product(routingAlgorithm, minGap, tau):
+    sim_params = "algo={}_minGap={}_tau={}".format(algo, minGap, tau)
+    # if partitioner.getPartition(sim_params) == task_index:
+    start_dt = datetime.now(timezone('Europe/Sofia'))
+    print(f'Start: {start_dt}')
+    run_flow_router(sim_uuid, sim_params, 50)
 
-        sim_uuid = "algo={}_m={}_t={}".format(algo, m, t)
-        if partitioner.getPartition(sim_uuid) == task_index:
-            start_dt = str(datetime.now(timezone('Europe/Sofia')))
-            run_flow_router(sim_uuid, 50)
+    attrs = {
+        'id': 'vdist1',
+        'vClass': 'passenger',
+        'color': '1,0,0',
+        'carFollowModel': 'KraussOrig1',
+        'minGap': f'{minGap}',
+        'tau': f'{tau}'
+    }
 
-            attrs = {
-                'id': 'vdist1',
-                'vClass': 'passenger',
-                'color': '1,0,0',
-                'carFollowModel': 'KraussOrig1',
-                'minGap': f'{m}',
-                'tau': f'{t}'
-            }
-            create_flow_file(sim_uuid, attrs)
+    create_flow_file(sim_uuid, sim_params, attrs)
 
-            call_dua_router(sim_uuid, algo)
-            run_kraus_orig_1(sim_uuid, m, t)
-            end_dt = str(datetime.now(timezone('Europe/Sofia')))
-            result_dict['algo'].append(algo)
-            result_dict['minGap'].append(m)
-            result_dict['tau'].append(t)
-            result_dict['start'].append(start_dt)
-            result_dict['end'].append(end_dt)
-            tree = etree.parse(Path.cwd() / Path(f'data/sim_{sim_uuid}/stat.xml'))
-            for el in list(tree.getroot()):
-                for attr_name, attr_val in dict(el.attrib).items():
-                    result_dict[f"{el.tag}_{attr_name}"].append(attr_val)
-        else:
-            logger.info(f"Task {task_index} skiping {sim_uuid}")
-        break
-    result_df = pd.DataFrame(result_dict)
-    result_df.to_csv(Path.cwd() / Path(f'data/result_{task_index}_of_{num_tasks}.csv'))
+    call_dua_router(sim_uuid, sim_params, algo)
+    run_sumo(sim_uuid, sim_params)
+
+    json_object = json.dumps(attrs, indent=4)
+    with open(Path.cwd() / Path(f'data/{sim_uuid}/sim_{sim_params}/attrs.json'), "w") as outfile:
+        outfile.write(json_object)
+
+    upload_results(sim_uuid, sim_params)
+    end_dt = datetime.now(timezone('Europe/Sofia'))
+    print(f'End: {end_dt}')
+    print(f'Duration: {end_dt - start_dt}')
+
+    return
 
 
 if __name__ == '__main__':
