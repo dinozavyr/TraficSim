@@ -6,6 +6,7 @@ idna==3.3
 iso8601==1.0.2
 keystoneauth1==5.0.0
 lxml==4.8.0
+minio==7.1.12
 mmh3==3.0.0
 msgpack==1.0.4
 netaddr==0.8.0

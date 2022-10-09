@@ -16,5 +16,5 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 ENV PYTHONPATH '/app'
 
-CMD ["sh", "-c", "python3", "/app/main.py", "--uuid=$UUID", "--algo=$ALGO", "--vtype=$VTYPE"]
+CMD ["sh", "-c", "python3", "/app/main.py", "--uuid=$UUID", "--algo=$ALGO", "--vtype=$VTYPE", "--interval=$INTERVAL"]
 
